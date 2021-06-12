@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Header, MovieList, MovieDetails, Loading } from './components';
 import dataMovies from './data'; 
+import apiMovie from './config/api.movies';
 
 class App extends Component {
 
@@ -24,6 +25,12 @@ class App extends Component {
     this.setState({
       selectedMovie: index
     })
+  }
+
+  componentDidMount() {
+    apiMovie.get('/discover/movie')
+        .then( response => console.log(response.data) )
+        .catch( err => console.log(err));
   }
 
   render() {
