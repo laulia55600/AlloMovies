@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { Header, MovieList, MovieDetails, Loading } from './components';
-import dataMovies from './data'; 
-import apiMovie from './config/api.movies';
+ import apiMovie from './config/api.movies';
 
-class App extends Component {
+ class App extends Component {
 
   constructor(props) {
     super(props);
@@ -13,24 +12,34 @@ class App extends Component {
       loaded: false
     }
 
-    setTimeout( () => {
-      this.setState({
-        movies: dataMovies,
-        loaded: true
+  }
+
+  componentDidMount() {
+    apiMovie.get('/discover/movie')
+      .then( response => response.data.results )
+      .then( moviesApi => {
+        const movies = moviesApi.map(m => ({ 
+          img: 'https://image.tmdb.org/t/p/w500' + m.poster_path,
+          title: m.title,
+          details: `${ m.release_date } | ${ m.vote_average }/10 (${ m.vote_count })`,
+          description: m.overview
+        }));
+        this.updateMovies(movies);
       })
-    }, 1000);
+      .catch( err => console.log(err));
+  }
+
+  updateMovies = (movies) => {
+    this.setState({
+      movies,
+      loaded: true
+    })
   }
 
   updateSelectedMovie = (index) => {
     this.setState({
       selectedMovie: index
     })
-  }
-
-  componentDidMount() {
-    apiMovie.get('/discover/movie')
-        .then( response => console.log(response.data) )
-        .catch( err => console.log(err));
   }
 
   render() {
