@@ -9,6 +9,7 @@ import { Header } from './components';
 import Films from './features/films';
 import Favoris from './features/favoris';
 import apiMovie, { apiMovieMap } from './config/api.movies';
+import apiFirebase from './config/api.firebase';
 
 class App extends Component {
 	constructor(props) {
@@ -22,22 +23,35 @@ class App extends Component {
 	}
 
 	componentDidMount() {
-		apiMovie
-			.get('/discover/movie')
-			.then((response) => response.data.results)
-			.then((moviesApi) => {
+		apiMovie.get('/discover/movie')
+			.then(response => response.data.results)
+			.then(moviesApi => {
 				const movies = moviesApi.map(apiMovieMap);
 				this.updateMovies(movies);
 			})
 			.catch((err) => console.log(err));
+		
+		apiFirebase.get('favoris.json')
+		 .then( response => {
+			 let favoris = response.data ? response.data : [];
+			 this.updateFavori(favoris)
+		 })
+		 .catch(err => console.log(err));
 	}
 
 	updateMovies = (movies) => {
 		this.setState({
 			movies,
-			loaded: true,
-		});
-	};
+			loaded: this.state.favoris ? true : false,
+		})
+	}
+
+	updateFavori = (favoris) => {
+		this.setState({
+			favoris,
+			loaded: this.state.movies ? true : false
+		})
+	}
 
 	updateSelectedMovie = (index) => {
 		this.setState({
@@ -49,15 +63,20 @@ class App extends Component {
 		const film = {...this.state.movies.find( m => m.title === title)};
 		this.setState(state => ({
 			favoris: [...this.state.favoris, film]
-		}));
+		}), this.saveFavoris);
 	}
 
 	removeFavori = title => {
 		const index = this.state.favoris.findIndex( f => f.title === title );
 		this.setState(state => ({
 		  favoris: state.favoris.filter((_, i) => i !== index)
-		}));
+		}), this.saveFavoris);
 		}
+	
+	saveFavoris = () => {
+		apiFirebase.put('favoris.json', this.state.favoris);
+	}
+
 
 	render() {
 		return (
@@ -84,7 +103,7 @@ class App extends Component {
 				  return (
 					  <Favoris
 					  	{...props}
-						favoris={ this.state.favoris}
+						favoris={this.state.favoris}
 						removeFavori={ this.removeFavori }
 					   />
 				  )
