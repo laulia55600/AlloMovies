@@ -103,6 +103,7 @@ class App extends Component {
 				  return (
 					  <Favoris
 					  	{...props}
+						  loaded={ this.state.loaded }
 						favoris={this.state.favoris}
 						removeFavori={ this.removeFavori }
 					   />
